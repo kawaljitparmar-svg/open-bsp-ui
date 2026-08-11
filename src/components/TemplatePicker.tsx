@@ -48,7 +48,11 @@ export default function TemplatePicker() {
   }, [toggle]);
 
   function select(template: TemplateData) {
-    if (!activeConvId) return;
+    console.log("[TemplatePicker] select called:", template.name, "activeConvId:", activeConvId);
+    if (!activeConvId) {
+      console.warn("[TemplatePicker] select bailed: no activeConvId");
+      return;
+    }
 
     const bodyExamples =
       template.components.find((c) => c.type === "BODY")?.example
@@ -63,6 +67,7 @@ export default function TemplatePicker() {
       headVarValues: headExamples.map(() => ""),
     });
     toggle("templatePicker", false);
+    console.log("[TemplatePicker] draft set, picker closed");
   }
 
   return (
@@ -75,7 +80,6 @@ export default function TemplatePicker() {
         value={search}
         onChange={setSearch}
         placeholder={t("Buscar plantilla...")}
-        autoFocus
         size="small"
         className="px-[40px] pt-[12px] pb-[8px] flex"
       />
@@ -98,6 +102,7 @@ export default function TemplatePicker() {
               return (
                 <button
                   key={tpl.id}
+                  type="button"
                   className="w-full text-left px-[10px] py-[8px] rounded-xl hover:bg-accent cursor-pointer"
                   onClick={() => select(tpl)}
                 >
