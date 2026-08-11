@@ -31,20 +31,8 @@ function NewChat() {
   const [phoneNumber, setPhoneNumber] = useState("");
 
   function sanitizePhoneNumber(phone: string): string {
-    // Remove all non-digit characters
-    const digits = phone.replace(/\D/g, "");
-
-    // If empty after sanitizing, return empty string
-    if (!digits) return "";
-
-    // If it already starts with 549, return as is
-    if (digits.startsWith("549")) return digits;
-
-    // If it starts with 54 but not 549, prepend 9
-    if (digits.startsWith("54")) return "549" + digits.slice(2);
-
-    // Otherwise prepend 549
-    return "549" + digits;
+    // Strip everything except digits — caller must include full country code (e.g. 919876543210 for India)
+    return phone.replace(/\D/g, "");
   }
 
   return (
