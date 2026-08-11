@@ -47,8 +47,13 @@ export const updateConvExtra = async (
   const merged: Record<string, unknown> = { ...current };
 
   for (const [k, v] of Object.entries(extra)) {
-    if (v === null) delete merged[k];
-    else merged[k] = v;
+    // Keep null values in the object rather than deleting the key.
+    // The DB has a BEFORE UPDATE trigger (set_extra / merge_update_jsonb) that
+    // deep-merges OLD.extra with NEW.extra: keys absent from NEW are preserved
+    // from OLD. Setting a key to JSON null is the correct way to "clear" it —
+    // the trigger writes null via jsonb_set, and isArchived / isPinned already
+    // treat null as falsy (null || 0 = 0).
+    merged[k] = v;
   }
 
   const { error } = await supabase
@@ -58,8 +63,8 @@ export const updateConvExtra = async (
 
   if (error) throw error;
 
-  // Directly update the store, bypassing the updated_at recency check in
-  // pushConversations, so pin/unpin/archive/unarchive always reflect instantly.
+  // Optimistic local update so the UI reflects the change immediately without
+  // waiting for the real-time subscription to echo it back.
   useBoundStore.setState((state) => {
     const conversations = new Map(state.chat.conversations);
     const existing = conversations.get(conversation.id);
