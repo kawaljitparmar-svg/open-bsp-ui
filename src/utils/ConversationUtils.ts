@@ -58,11 +58,19 @@ export const updateConvExtra = async (
 
   if (error) throw error;
 
-  // Immediately reflect the change locally so the UI updates without waiting
-  // for the real-time subscription to echo the change back.
-  useBoundStore.getState().chat.pushConversations([
-    { ...conversation, extra: merged as unknown as ConversationRow["extra"] },
-  ]);
+  // Directly update the store, bypassing the updated_at recency check in
+  // pushConversations, so pin/unpin/archive/unarchive always reflect instantly.
+  useBoundStore.setState((state) => {
+    const conversations = new Map(state.chat.conversations);
+    const existing = conversations.get(conversation.id);
+    if (existing) {
+      conversations.set(conversation.id, {
+        ...existing,
+        extra: merged as unknown as ConversationRow["extra"],
+      });
+    }
+    return { chat: { ...state.chat, conversations } };
+  });
 };
 
 export async function saveDraft(
