@@ -4,9 +4,6 @@ import { supabase } from "@/supabase/client";
 import { useTranslation } from "@/hooks/useTranslation";
 
 export const Route = createFileRoute("/login")({
-  validateSearch: (search): { redirect?: string } => ({
-    redirect: (search.redirect as string) || undefined,
-  }),
   component: Login,
 });
 
@@ -14,7 +11,6 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
-  const { redirect } = Route.useSearch();
 
   const { translate: t } = useTranslation();
 
