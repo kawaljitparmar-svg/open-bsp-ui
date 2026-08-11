@@ -57,6 +57,12 @@ export const updateConvExtra = async (
     .eq("id", conversation.id);
 
   if (error) throw error;
+
+  // Immediately reflect the change locally so the UI updates without waiting
+  // for the real-time subscription to echo the change back.
+  useBoundStore.getState().chat.pushConversations([
+    { ...conversation, extra: merged as unknown as ConversationRow["extra"] },
+  ]);
 };
 
 export async function saveDraft(
