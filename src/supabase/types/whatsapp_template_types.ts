@@ -91,6 +91,7 @@ type DateTimeParameter = {
 
 type TextParameter = {
   type: "text";
+  parameter_name?: string; // @ui-divergence: required by Meta API for named-variable templates ({{name}} style)
   text: string;
 };
 
@@ -145,3 +146,4 @@ export type TemplateMessage = {
   type: "template";
   template: Template;
 };
+
