@@ -24,7 +24,7 @@ export function useContactAddress(
         .eq("organization_id", orgId!)
         .eq("service", service!)
         .eq("address", address!)
-        .single()
+        .maybeSingle()
         .throwOnError(),
     enabled: !!userId && !!orgId && !!service && !!address,
     select: (data) => data.data,
