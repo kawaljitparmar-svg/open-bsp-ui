@@ -164,8 +164,8 @@ export default function ChatFooter() {
   const headExamples = templateHead?.example?.header_text || [];
 
   // Count how many variables are in the template body/header
-  const bodyVarCount = (templateBody?.text.match(/\{\{\d+\}\}/g) || []).length;
-  const headVarCount = (templateHead?.text?.match(/\{\{\d+\}\}/g) || []).length;
+  const bodyVarCount = (templateBody?.text.match(/\{\{[\w]+\}\}/g) || []).length;
+  const headVarCount = (templateHead?.text?.match(/\{\{[\w]+\}\}/g) || []).length;
 
   const allVarsFilled =
     templateDraft &&
@@ -288,10 +288,9 @@ export default function ChatFooter() {
     const components: TemplateMessage["template"]["components"] = [];
 
     if (headVarValues.length && headVarCount > 0) {
-      let idx = 1;
-      for (const value of headVarValues.slice(0, headVarCount)) {
-        headContent = headContent?.replaceAll(`{{${idx}}}`, value);
-        idx++;
+      const headVarMatches = templateHead?.text?.match(/\{\{[\w]+\}\}/g) || [];
+      for (let i = 0; i < Math.min(headVarValues.length, headVarMatches.length); i++) {
+        headContent = headContent?.replaceAll(headVarMatches[i], headVarValues[i]);
       }
       components.push({
         type: "header",
@@ -303,10 +302,9 @@ export default function ChatFooter() {
     }
 
     if (bodyVarValues.length && bodyVarCount > 0) {
-      let idx = 1;
-      for (const value of bodyVarValues.slice(0, bodyVarCount)) {
-        bodyContent = bodyContent.replaceAll(`{{${idx}}}`, value);
-        idx++;
+      const bodyVarMatches = templateBody?.text.match(/\{\{[\w]+\}\}/g) || [];
+      for (let i = 0; i < Math.min(bodyVarValues.length, bodyVarMatches.length); i++) {
+        bodyContent = bodyContent.replaceAll(bodyVarMatches[i], bodyVarValues[i]);
       }
       components.push({
         type: "body",
@@ -386,7 +384,7 @@ export default function ChatFooter() {
 
     // Render header if present
     if (templateHead?.text && headVarCount > 0) {
-      const headerSegments = templateHead.text.split(/(\{\{\d+\}\})/);
+      const headerSegments = templateHead.text.split(/(\{\{[\w]+\}\})/);
       let headerIdx = 0;
       for (const seg of headerSegments) {
         const match = seg.match(/^\{\{(\d+)\}\}$/);
@@ -403,7 +401,7 @@ export default function ChatFooter() {
     }
 
     // Render body
-    const segments = templateBody.text.split(/(\{\{\d+\}\})/);
+    const segments = templateBody.text.split(/(\{\{[\w]+\}\})/);
     let bodyIdx = 0;
     for (const seg of segments) {
       const match = seg.match(/^\{\{(\d+)\}\}$/);
