@@ -289,13 +289,17 @@ export default function ChatFooter() {
 
     if (headVarValues.length && headVarCount > 0) {
       const headVarMatches = templateHead?.text?.match(/\{\{[\w]+\}\}/g) || [];
+      const headVarNames = headVarMatches.map((m) => m.slice(2, -2));
       for (let i = 0; i < Math.min(headVarValues.length, headVarMatches.length); i++) {
         headContent = headContent?.replaceAll(headVarMatches[i], headVarValues[i]);
       }
       components.push({
         type: "header",
-        parameters: headVarValues.slice(0, headVarCount).map((text) => ({
+        parameters: headVarValues.slice(0, headVarCount).map((text, i) => ({
           type: "text" as const,
+          ...(headVarNames[i] && !/^\d+$/.test(headVarNames[i])
+            ? { parameter_name: headVarNames[i] }
+            : {}),
           text,
         })),
       });
@@ -303,13 +307,17 @@ export default function ChatFooter() {
 
     if (bodyVarValues.length && bodyVarCount > 0) {
       const bodyVarMatches = templateBody?.text.match(/\{\{[\w]+\}\}/g) || [];
+      const bodyVarNames = bodyVarMatches.map((m) => m.slice(2, -2));
       for (let i = 0; i < Math.min(bodyVarValues.length, bodyVarMatches.length); i++) {
         bodyContent = bodyContent.replaceAll(bodyVarMatches[i], bodyVarValues[i]);
       }
       components.push({
         type: "body",
-        parameters: bodyVarValues.slice(0, bodyVarCount).map((text) => ({
+        parameters: bodyVarValues.slice(0, bodyVarCount).map((text, i) => ({
           type: "text" as const,
+          ...(bodyVarNames[i] && !/^\d+$/.test(bodyVarNames[i])
+            ? { parameter_name: bodyVarNames[i] }
+            : {}),
           text,
         })),
       });
