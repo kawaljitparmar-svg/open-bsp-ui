@@ -8,7 +8,6 @@ import {
   MessageSquareText,
   Unplug,
   Bot,
-  BarChart3,
   Languages,
   Plus,
   NotebookTabs,
@@ -89,15 +88,6 @@ export default function Menu() {
           <Unplug className="w-[24px] h-[24px] stroke-[2]" />
         </LinkButton>
 
-        {/* Stats button */}
-        <LinkButton
-          to="/stats"
-          title={t("Estadísticas")}
-          isActive={pathname.startsWith("/stats")}
-          className="mt-[10px]"
-        >
-          <BarChart3 className="w-[24px] h-[24px] stroke-[2]" />
-        </LinkButton>
       </div>
 
       {/* Lower section */}
