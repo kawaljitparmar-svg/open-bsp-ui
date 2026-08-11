@@ -419,7 +419,7 @@ export default function ChatFooter() {
     }
 
     return (
-      <div className="mx-[5px] py-[10px] min-h-[40px] max-h-40 overflow-y-auto text-[15px] leading-[20px] break-words">
+      <div className="mx-[5px] py-[10px] min-h-[40px] max-h-40 overflow-y-auto text-[15px] leading-[20px] break-words whitespace-pre-wrap">
         {parts.map((part, i) =>
           typeof part === "string" ? (
             <span key={i}>{part}</span>
@@ -458,6 +458,18 @@ export default function ChatFooter() {
               autoFocus={i === parts.findIndex((p) => typeof p !== "string")}
             />
           ),
+        )}
+        {templateButtons?.buttons && templateButtons.buttons.length > 0 && (
+          <div className="mt-[8px] flex flex-col gap-[4px]">
+            {templateButtons.buttons.map((btn, i) => (
+              <div
+                key={i}
+                className="text-center text-primary text-[13px] py-[4px] border-t border-border whitespace-normal"
+              >
+                ↩ {btn.text}
+              </div>
+            ))}
+          </div>
         )}
       </div>
     );
