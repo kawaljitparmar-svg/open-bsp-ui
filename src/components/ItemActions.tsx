@@ -1,6 +1,6 @@
 import { Dropdown, type MenuProps } from "antd";
 import useBoundStore from "@/stores/useBoundStore";
-import { type MessageRow } from "@/supabase/client";
+import { supabase, type MessageRow } from "@/supabase/client";
 import { isArchived } from "@/stores/uiSlice";
 import { useTranslation } from "@/hooks/useTranslation";
 import { updateConvExtra } from "@/utils/ConversationUtils";
@@ -37,7 +37,13 @@ export default function ItemActions({
 
   const isPaused =
     +new Date(conversation.extra?.paused || 0) >
-    +new Date() - 12 * 60 * 60 * 1000; // Less than 12 hours ago.
+    +new Date() - 12 * 60 * 60 * 1000;
+
+  async function handleDelete() {
+    if (!window.confirm("Delete this conversation? This cannot be undone.")) return;
+    await supabase.from("messages").delete().eq("conversation_id", conversation!.id);
+    await supabase.from("conversations").delete().eq("id", conversation!.id);
+  }
 
   const items: MenuProps["items"] = [
     {
@@ -68,11 +74,13 @@ export default function ItemActions({
           pinned: isPinned ? null : new Date().toISOString(),
         }),
     },
-    /*{
-      label: t("Marcar como no leído"),
-      key: "2",
-      disabled: true,
-    },*/
+    { type: "divider" },
+    {
+      label: "Delete conversation",
+      key: "3",
+      danger: true,
+      onClick: handleDelete,
+    },
   ];
 
   return (
