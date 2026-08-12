@@ -109,7 +109,7 @@ export default function ChatFooter() {
   const { data: agent } = useCurrentAgent();
   const agentId = agent?.id;
 
-  const [timer, setTimer] = useState<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
   const editableDiv = useRef<HTMLDivElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -228,7 +228,7 @@ export default function ChatFooter() {
     }
 
     if (shouldLoadDraft) {
-      clearTimeout(timer);
+      clearTimeout(timerRef.current);
 
       setMessage(draft.text);
 
@@ -248,7 +248,7 @@ export default function ChatFooter() {
       return;
     }
 
-    clearTimeout(timer);
+    clearTimeout(timerRef.current);
 
     // If the conv has the `updated_at` unset, it means it has not been pushed to the DB yet.
     !conv.updated_at && (await pushConversationToDb(conv));
@@ -406,8 +406,8 @@ export default function ChatFooter() {
   };
 
   function debounce(fn: () => void, ms: number) {
-    clearTimeout(timer);
-    setTimer(setTimeout(fn, ms));
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(fn, ms);
   }
 
   // Render template body with inline inputs for variables
