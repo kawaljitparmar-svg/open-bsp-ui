@@ -5,6 +5,8 @@ import {
 } from "@/supabase/client";
 import useBoundStore from "@/stores/useBoundStore";
 import { useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/queries/queryKeys";
 
 export const useRealtimeSubscription = () => {
   const activeOrgId = useBoundStore((state) => state.ui.activeOrgId);
@@ -13,6 +15,7 @@ export const useRealtimeSubscription = () => {
     (state) => state.chat.pushConversations,
   );
   const pushMessages = useBoundStore((state) => state.chat.pushMessages);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!activeOrgId) return;
@@ -55,6 +58,26 @@ export const useRealtimeSubscription = () => {
           pushMessages([message]);
 
           //updateMessagesCache([message]);
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "contacts",
+          filter,
+        },
+        () => {
+          // A contact was created, renamed, or deleted. Invalidate all contact
+          // and contacts_addresses queries so the conversation list display names
+          // and the contacts page both reflect the change immediately.
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.contacts.all(activeOrgId),
+          });
+          queryClient.invalidateQueries({
+            queryKey: [activeOrgId, "contacts_addresses"],
+          });
         },
       );
 
