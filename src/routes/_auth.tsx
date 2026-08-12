@@ -56,10 +56,6 @@ function AppLayout() {
     setActiveConv(convId);
   }, [location.hash]);
 
-  console.log("--------");
-  console.log("active org ", activeOrgId);
-  console.log("active conv", activeConvId);
-
   const showCenterPanel = activeConvId;
 
   return (
