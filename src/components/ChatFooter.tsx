@@ -169,7 +169,9 @@ export default function ChatFooter() {
 
   const allVarsFilled =
     templateDraft &&
+    bodyVarValues.slice(0, bodyVarCount).length === bodyVarCount &&
     bodyVarValues.slice(0, bodyVarCount).every((v) => v.trim() !== "") &&
+    headVarValues.slice(0, headVarCount).length === headVarCount &&
     headVarValues.slice(0, headVarCount).every((v) => v.trim() !== "");
 
   function updateVarValues(bodyVars: string[], headVars: string[]) {
@@ -395,7 +397,7 @@ export default function ChatFooter() {
       const headerSegments = templateHead.text.split(/(\{\{[\w]+\}\})/);
       let headerIdx = 0;
       for (const seg of headerSegments) {
-        const match = seg.match(/^\{\{(\d+)\}\}$/);
+        const match = seg.match(/^\{\{([\w]+)\}\}$/);
         if (match) {
           parts.push({ varIndex: headerIdx, isHeader: true });
           headerIdx++;
@@ -412,7 +414,7 @@ export default function ChatFooter() {
     const segments = templateBody.text.split(/(\{\{[\w]+\}\})/);
     let bodyIdx = 0;
     for (const seg of segments) {
-      const match = seg.match(/^\{\{(\d+)\}\}$/);
+      const match = seg.match(/^\{\{([\w]+)\}\}$/);
       if (match) {
         parts.push({ varIndex: bodyIdx, isHeader: false });
         bodyIdx++;
