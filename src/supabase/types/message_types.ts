@@ -165,6 +165,10 @@ type UnsupportedPart = DataPart<
   UnsupportedMessage["unsupported"]
 >;
 
+// Connector-sent message types that are not recognized (e.g. whatsapp-web bridge
+// forwards unsupported WA types as unknown rather than dropping them).
+type UnknownPart = DataPart<"unknown", Json>;
+
 // Synthetic content for messaging_referral events (no message attached).
 type ReferralPart = DataPart<"referral", InstagramReferral>;
 
@@ -215,6 +219,7 @@ export type IncomingMessage = {
     | ButtonPart
     | MediaPlaceholderPart
     | UnsupportedPart
+    | UnknownPart
     | ReferralPart
     | SharePart
     | Parts

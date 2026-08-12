@@ -540,6 +540,26 @@ export default function Message(props: UIMessage & { message: MessageRow }) {
       />
     );
     text = true;
+  } else if (
+    props.message.content.type === "data" &&
+    (props.message.content.kind === "unknown" ||
+      props.message.content.kind === "unsupported")
+  ) {
+    content = (
+      <TextMessage
+        header={headerText}
+        body={`_${t("Mensaje no compatible")}_`}
+        type="markdown"
+        direction={props.message.direction}
+        timestamp={props.message.timestamp}
+        status={
+          props.message.direction === "outgoing"
+            ? props.message.status
+            : undefined
+        }
+      />
+    );
+    text = true;
   } else if (props.message.content.type === "data") {
     content = (
       <TextMessage
