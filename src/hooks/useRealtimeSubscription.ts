@@ -81,7 +81,9 @@ export const useRealtimeSubscription = () => {
         },
       );
 
-    channel.subscribe();
+    channel.subscribe((status, err) => {
+      if (err) console.error("[Realtime] subscription error:", err);
+    });
 
     // Cleanup subscription on unmount
     return () => {
