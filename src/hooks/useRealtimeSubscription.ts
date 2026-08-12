@@ -79,7 +79,7 @@ export const useRealtimeSubscription = () => {
         },
       );
 
-    channel.subscribe((status, err) => {
+    channel.subscribe((_status, err) => {
       if (err) console.error("[Realtime] error:", err);
     });
 
