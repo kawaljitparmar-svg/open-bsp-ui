@@ -442,7 +442,7 @@ export default function ToolsSection<T extends FieldValues>({
         />
       )}
 
-      {/* OpenBSP MCP Client Editor */}
+      {/* ReachBox MCP Client Editor */}
       {isOpen && editor.type === "openbsp-mcp" && (
         <OpenBSPMCPClientEditor
           index={editor.index}
@@ -1321,7 +1321,7 @@ function GoogleMCPClientEditor<T extends FieldValues>({
   );
 }
 
-// OpenBSP MCP Client Editor
+// ReachBox MCP Client Editor
 function OpenBSPMCPClientEditor<T extends FieldValues>({
   index,
   register,
@@ -1359,13 +1359,13 @@ function OpenBSPMCPClientEditor<T extends FieldValues>({
       name: `extra.tools.${index}.config.headers.authorization` as any,
     }) as string) || "";
 
-  // Auto-auth for owners: find or create an "OpenBSP MCP" API key
+  // Auto-auth for owners: find or create an "ReachBox MCP" API key
   const hasToken = token.trim() !== "";
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!isOwner || autoAuthDone || hasToken || !apiKeys) return;
 
-    const existing = apiKeys.find((k) => k.name === "OpenBSP MCP");
+    const existing = apiKeys.find((k) => k.name === "ReachBox MCP");
     if (existing) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setValue(
@@ -1375,7 +1375,7 @@ function OpenBSPMCPClientEditor<T extends FieldValues>({
       );
       setAutoAuthDone(true);
     } else {
-      createApiKey({ name: "OpenBSP MCP", role: "member" }).then((newKey) => {
+      createApiKey({ name: "ReachBox MCP", role: "member" }).then((newKey) => {
         if (newKey) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           setValue(
