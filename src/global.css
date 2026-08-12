@@ -100,8 +100,6 @@ html,
 body {
   padding: 0;
   margin: 0;
-  height: 100%;
-  overflow: hidden;
   font-family:
     Segoe UI,
     Helvetica Neue,
@@ -112,10 +110,6 @@ body {
     Cantarell,
     Fira Sans,
     sans-serif;
-}
-
-#root {
-  height: 100%;
 }
 
 a {
@@ -243,8 +237,8 @@ button:disabled {
     display: grid;
     /* Default (lg+): Menu | Left Panel | Chat */
     grid-template-columns: 48px minmax(300px, 1fr) 2fr;
-    height: 100dvh;
-    width: 100vw;
+    position: fixed;
+    inset: 0;
     overflow: hidden;
   }
 
