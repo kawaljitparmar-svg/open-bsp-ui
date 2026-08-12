@@ -7,6 +7,7 @@ import {
 } from "@/utils/MessageUtils";
 import useBoundStore from "@/stores/useBoundStore";
 import { pushConversationToDb, saveDraft } from "@/utils/ConversationUtils";
+import { supabase } from "@/supabase/client";
 import { type FileDraft } from "@/stores/chatSlice";
 import {
   type Draft,
@@ -307,9 +308,10 @@ export default function ChatFooter() {
       });
     }
 
+    const bodyVarMatches = templateBody.text.match(/\{\{[\w]+\}\}/g) || [];
+    const bodyVarNames = bodyVarMatches.map((m) => m.slice(2, -2));
+
     if (bodyVarValues.length && bodyVarCount > 0) {
-      const bodyVarMatches = templateBody?.text.match(/\{\{[\w]+\}\}/g) || [];
-      const bodyVarNames = bodyVarMatches.map((m) => m.slice(2, -2));
       for (let i = 0; i < Math.min(bodyVarValues.length, bodyVarMatches.length); i++) {
         bodyContent = bodyContent.replaceAll(bodyVarMatches[i], bodyVarValues[i]);
       }
@@ -377,6 +379,28 @@ export default function ChatFooter() {
 
     pushMessageToStore(record);
     await pushMessageToDb(record);
+
+    // Auto-save contact name from the {{name}} template variable if the contact
+    // has none yet. Only applies when the body contains a parameter named "name".
+    const nameIdx = bodyVarNames.indexOf("name");
+    const contactName = nameIdx >= 0 ? (bodyVarValues[nameIdx] || "").trim() : "";
+    if (contactName && conv.contact_address) {
+      const { data: addr } = await supabase
+        .from("contacts_addresses")
+        .select("contact_id")
+        .eq("organization_id", conv.organization_id)
+        .eq("service", conv.service)
+        .eq("address", conv.contact_address)
+        .maybeSingle();
+
+      if (addr?.contact_id) {
+        await supabase
+          .from("contacts")
+          .update({ name: contactName })
+          .eq("id", addr.contact_id)
+          .or("name.is.null,name.eq.");
+      }
+    }
 
     setTemplateDraft(activeConvId, null);
   };
