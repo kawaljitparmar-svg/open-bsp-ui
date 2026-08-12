@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import StatusIcon from "./StatusIcon";
 import { useMedia } from "@/hooks/useMedia";
 import { type MessageRow, type OutgoingStatus } from "@/supabase/client";
@@ -80,7 +80,6 @@ export default function DocumentMessage(message: MessageRow) {
   const media = content.file;
 
   const { load, startLoad, cancelLoad, handleLoad } = useMedia(message);
-  const [showAnnotation, setShowAnnotation] = useState(false);
 
   const { translate: t } = useTranslation();
 
@@ -102,9 +101,7 @@ export default function DocumentMessage(message: MessageRow) {
 
   return (
     <div
-      className={
-        "w-[320px]" + (content.text || content.artifacts ? "" : " pb-[25px]")
-      }
+      className={"w-[320px]" + (content.text ? "" : " pb-[25px]")}
     >
       {/* File */}
       <div
@@ -169,41 +166,6 @@ export default function DocumentMessage(message: MessageRow) {
           />
         </div>
       )}
-
-      {/* Description - from artifacts with kind "description" */}
-      {content.artifacts &&
-        content.artifacts.some(
-          (a) => a.type === "text" && a.kind === "description",
-        ) && (
-          <div
-            className={
-              "pl-[6px] pb-[5px] pr-[4px] text-muted-foreground" +
-              (content.text ? "" : " pt-[6px]")
-            }
-          >
-            {showAnnotation && (
-              <Markdown
-                content={(() => {
-                  const description = content.artifacts.find(
-                    (a) => a.type === "text" && a.kind === "description",
-                  );
-                  return description?.type === "text"
-                    ? description.text || ""
-                    : "";
-                })()}
-                direction={message.direction}
-              />
-            )}
-            <div
-              className="text-primary cursor-pointer"
-              onClick={() => setShowAnnotation(!showAnnotation)}
-            >
-              {showAnnotation
-                ? t("ocultar descripción...")
-                : t("ver descripción...")}
-            </div>
-          </div>
-        )}
 
       {/* Timestamp */}
       <div className="text-[11px] text-muted-foreground absolute bottom-[0px] right-[7px] flex items-center">

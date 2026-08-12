@@ -16,7 +16,6 @@ import styles from "./ImageMessagePreviewer.module.css";
 import { type MessageRow, type OutgoingStatus } from "@/supabase/client";
 import { Markdown } from "./Message";
 import { mediaCategory } from "./media";
-import { useTranslation } from "@/hooks/useTranslation";
 
 const PORTRAIT_WIDTH = 240;
 const LANDSCAPE_WIDTH = 320;
@@ -42,10 +41,6 @@ export default function ImageMessage(message: MessageRow) {
   const { load, startLoad, cancelLoad, handleLoad } = useMedia(message);
   const [width, setWidth] = useState(PORTRAIT_WIDTH);
   const [height, setHeight] = useState(MAX_PORTRAIT_HEIGHT);
-  const [showAnnotation, setShowAnnotation] = useState(false);
-
-  const { translate: t } = useTranslation();
-
   useEffect(() => {
     // Start the upload right away.
     if (load.type === "upload" && load.status === "pending") {
@@ -220,49 +215,11 @@ export default function ImageMessage(message: MessageRow) {
         </div>
       )}
 
-      {/* Description - from artifacts with kind "description" */}
-      {content.artifacts &&
-        content.artifacts.some(
-          (a) => a.type === "text" && a.kind === "description",
-        ) && (
-          <div
-            className={
-              "pl-[6px] pb-[5px] pr-[4px] text-muted-foreground" +
-              (content.text ? "" : " pt-[6px]")
-            }
-            style={{ width }}
-          >
-            {showAnnotation && (
-              <Markdown
-                content={(() => {
-                  const description = content.artifacts.find(
-                    (a) => a.type === "text" && a.kind === "description",
-                  );
-                  return description?.type === "text"
-                    ? description.text || ""
-                    : "";
-                })()}
-                direction={message.direction}
-              />
-            )}
-            <div
-              className="text-primary cursor-pointer"
-              onClick={() => setShowAnnotation(!showAnnotation)}
-            >
-              {showAnnotation
-                ? t("ocultar descripción...")
-                : t("ver descripción...")}
-            </div>
-          </div>
-        )}
-
       {/* Timestamp */}
       <div
         className={
           "z-[2] text-[11px] absolute bottom-[0px] right-[7px] flex items-center" +
-          (content.text ||
-          (content.artifacts && content.artifacts.length > 0) ||
-          !load.blob
+          (content.text || !load.blob
             ? " text-muted-foreground"
             : " text-white bottom-[3px]")
         }

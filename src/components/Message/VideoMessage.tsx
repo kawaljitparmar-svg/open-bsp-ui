@@ -35,7 +35,6 @@ export default function VideoMessage(message: MessageRow) {
   const [height, setHeight] = useState(MAX_PORTRAIT_HEIGHT);
   const [src, setSrc] = useState<string>();
   const [started, setStarted] = useState(false);
-  const [showAnnotation, setShowAnnotation] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const { translate: t } = useTranslation();
@@ -87,10 +86,7 @@ export default function VideoMessage(message: MessageRow) {
   // timestamp overlays the video itself (as in ImageMessage). The native player
   // puts its controls along the bottom, so — unlike an image — the overlay goes
   // at the top to stay clear of them.
-  const overlayTimestamp =
-    !!src &&
-    !content.text &&
-    !(content.artifacts && content.artifacts.length > 0);
+  const overlayTimestamp = !!src && !content.text;
 
   return (
     <>
@@ -212,42 +208,6 @@ export default function VideoMessage(message: MessageRow) {
           />
         </div>
       )}
-
-      {/* Description - from artifacts with kind "description" */}
-      {content.artifacts &&
-        content.artifacts.some(
-          (a) => a.type === "text" && a.kind === "description",
-        ) && (
-          <div
-            className={
-              "pl-[6px] pb-[5px] pr-[4px] text-muted-foreground" +
-              (content.text ? "" : " pt-[6px]")
-            }
-            style={{ width }}
-          >
-            {showAnnotation && (
-              <Markdown
-                content={(() => {
-                  const description = content.artifacts.find(
-                    (a) => a.type === "text" && a.kind === "description",
-                  );
-                  return description?.type === "text"
-                    ? description.text || ""
-                    : "";
-                })()}
-                direction={message.direction}
-              />
-            )}
-            <div
-              className="text-primary cursor-pointer"
-              onClick={() => setShowAnnotation(!showAnnotation)}
-            >
-              {showAnnotation
-                ? t("ocultar descripción...")
-                : t("ver descripción...")}
-            </div>
-          </div>
-        )}
 
       {/* Timestamp */}
       <div

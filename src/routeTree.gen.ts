@@ -23,7 +23,6 @@ import { Route as AuthAgentsIndexRouteImport } from './routes/_auth/agents/index
 import { Route as OnboardWhatsappTokenRouteImport } from './routes/onboard.whatsapp.$token'
 import { Route as OnboardInstagramCallbackRouteImport } from './routes/onboard.instagram.callback'
 import { Route as OnboardInstagramTokenRouteImport } from './routes/onboard.instagram.$token'
-import { Route as AuthIntegrationsMediaPreprocessingRouteImport } from './routes/_auth/integrations/media-preprocessing'
 import { Route as AuthConversationsNewRouteImport } from './routes/_auth/conversations/new'
 import { Route as AuthContactsNewRouteImport } from './routes/_auth/contacts/new'
 import { Route as AuthContactsContactIdRouteImport } from './routes/_auth/contacts/$contactId'
@@ -129,12 +128,6 @@ const OnboardInstagramTokenRoute = OnboardInstagramTokenRouteImport.update({
   path: '/onboard/instagram/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthIntegrationsMediaPreprocessingRoute =
-  AuthIntegrationsMediaPreprocessingRouteImport.update({
-    id: '/integrations/media-preprocessing',
-    path: '/integrations/media-preprocessing',
-    getParentRoute: () => AuthRoute,
-  } as any)
 const AuthConversationsNewRoute = AuthConversationsNewRouteImport.update({
   id: '/conversations/new',
   path: '/conversations/new',
@@ -343,7 +336,6 @@ export interface FileRoutesByFullPath {
   '/contacts/$contactId': typeof AuthContactsContactIdRoute
   '/contacts/new': typeof AuthContactsNewRoute
   '/conversations/new': typeof AuthConversationsNewRoute
-  '/integrations/media-preprocessing': typeof AuthIntegrationsMediaPreprocessingRoute
   '/onboard/instagram/$token': typeof OnboardInstagramTokenRoute
   '/onboard/instagram/callback': typeof OnboardInstagramCallbackRoute
   '/onboard/whatsapp/$token': typeof OnboardWhatsappTokenRoute
@@ -393,7 +385,6 @@ export interface FileRoutesByTo {
   '/contacts/$contactId': typeof AuthContactsContactIdRoute
   '/contacts/new': typeof AuthContactsNewRoute
   '/conversations/new': typeof AuthConversationsNewRoute
-  '/integrations/media-preprocessing': typeof AuthIntegrationsMediaPreprocessingRoute
   '/onboard/instagram/$token': typeof OnboardInstagramTokenRoute
   '/onboard/instagram/callback': typeof OnboardInstagramCallbackRoute
   '/onboard/whatsapp/$token': typeof OnboardWhatsappTokenRoute
@@ -445,7 +436,6 @@ export interface FileRoutesById {
   '/_auth/contacts/$contactId': typeof AuthContactsContactIdRoute
   '/_auth/contacts/new': typeof AuthContactsNewRoute
   '/_auth/conversations/new': typeof AuthConversationsNewRoute
-  '/_auth/integrations/media-preprocessing': typeof AuthIntegrationsMediaPreprocessingRoute
   '/onboard/instagram/$token': typeof OnboardInstagramTokenRoute
   '/onboard/instagram/callback': typeof OnboardInstagramCallbackRoute
   '/onboard/whatsapp/$token': typeof OnboardWhatsappTokenRoute
@@ -497,7 +487,6 @@ export interface FileRouteTypes {
     | '/contacts/$contactId'
     | '/contacts/new'
     | '/conversations/new'
-    | '/integrations/media-preprocessing'
     | '/onboard/instagram/$token'
     | '/onboard/instagram/callback'
     | '/onboard/whatsapp/$token'
@@ -547,7 +536,6 @@ export interface FileRouteTypes {
     | '/contacts/$contactId'
     | '/contacts/new'
     | '/conversations/new'
-    | '/integrations/media-preprocessing'
     | '/onboard/instagram/$token'
     | '/onboard/instagram/callback'
     | '/onboard/whatsapp/$token'
@@ -598,7 +586,6 @@ export interface FileRouteTypes {
     | '/_auth/contacts/$contactId'
     | '/_auth/contacts/new'
     | '/_auth/conversations/new'
-    | '/_auth/integrations/media-preprocessing'
     | '/onboard/instagram/$token'
     | '/onboard/instagram/callback'
     | '/onboard/whatsapp/$token'
@@ -748,13 +735,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/onboard/instagram/$token'
       preLoaderRoute: typeof OnboardInstagramTokenRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/_auth/integrations/media-preprocessing': {
-      id: '/_auth/integrations/media-preprocessing'
-      path: '/integrations/media-preprocessing'
-      fullPath: '/integrations/media-preprocessing'
-      preLoaderRoute: typeof AuthIntegrationsMediaPreprocessingRouteImport
-      parentRoute: typeof AuthRoute
     }
     '/_auth/conversations/new': {
       id: '/_auth/conversations/new'
@@ -1004,7 +984,6 @@ interface AuthRouteChildren {
   AuthContactsContactIdRoute: typeof AuthContactsContactIdRoute
   AuthContactsNewRoute: typeof AuthContactsNewRoute
   AuthConversationsNewRoute: typeof AuthConversationsNewRoute
-  AuthIntegrationsMediaPreprocessingRoute: typeof AuthIntegrationsMediaPreprocessingRoute
   AuthAgentsIndexRoute: typeof AuthAgentsIndexRoute
   AuthContactsIndexRoute: typeof AuthContactsIndexRoute
   AuthConversationsIndexRoute: typeof AuthConversationsIndexRoute
@@ -1048,8 +1027,6 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthContactsContactIdRoute: AuthContactsContactIdRoute,
   AuthContactsNewRoute: AuthContactsNewRoute,
   AuthConversationsNewRoute: AuthConversationsNewRoute,
-  AuthIntegrationsMediaPreprocessingRoute:
-    AuthIntegrationsMediaPreprocessingRoute,
   AuthAgentsIndexRoute: AuthAgentsIndexRoute,
   AuthContactsIndexRoute: AuthContactsIndexRoute,
   AuthConversationsIndexRoute: AuthConversationsIndexRoute,

@@ -14,20 +14,11 @@ export type Memory = {
   [key: string]: string | undefined | Memory;
 };
 
-export type PreprocessingConfig = {
-  mode?: "active" | "inactive";
-  model?: "gemini-2.5-pro" | "gemini-2.5-flash";
-  api_key?: string;
-  language?: string;
-  extra_prompt?: string;
-};
-
 export type OrganizationExtra = {
   response_delay_seconds?: number;
   welcome_message?: string;
   authorized_contacts_only?: boolean;
   default_agent_id?: string;
-  media_preprocessing?: PreprocessingConfig;
   error_messages_direction?: "internal" | "outgoing";
 };
 

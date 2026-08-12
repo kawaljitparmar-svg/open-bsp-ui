@@ -2,7 +2,6 @@ import SectionBody from "@/components/SectionBody";
 import SectionHeader from "@/components/SectionHeader";
 import SectionItem from "@/components/SectionItem";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { FileText } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { InstagramOutlined, WhatsAppOutlined } from "@ant-design/icons";
 import ServiceIcon from "@/components/ServiceIcon";
@@ -65,21 +64,6 @@ function IntegrationsIndex() {
             onClick={() =>
               navigate({
                 to: "/integrations/instagram",
-                hash: (prevHash) => prevHash!,
-              })
-            }
-          />
-          <SectionItem
-            aside={
-              <div className="p-[8px]">
-                <FileText className="w-[24px] h-[24px]" />
-              </div>
-            }
-            title={t("Pre-procesamiento de media")}
-            description={t("Interpreta audios, imágenes y documentos")}
-            onClick={() =>
-              navigate({
-                to: "/integrations/media-preprocessing",
                 hash: (prevHash) => prevHash!,
               })
             }

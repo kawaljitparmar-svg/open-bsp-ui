@@ -246,20 +246,6 @@ export default function AudioMessage({
         </div>
       )}
 
-      {/* Transcription - from artifacts with kind "transcription" */}
-      {content.artifacts &&
-        content.artifacts.some(
-          (a) => a.type === "text" && a.kind === "transcription",
-        ) && (
-          <div className="pl-[6px] pt-[6px] pb-[5px] pr-[4px] text-muted-foreground text-[13px] italic">
-            {(() => {
-              const transcription = content.artifacts.find(
-                (a) => a.type === "text" && a.kind === "transcription",
-              );
-              return transcription?.type === "text" ? transcription.text : "";
-            })()}
-          </div>
-        )}
     </div>
   );
 }
