@@ -109,14 +109,6 @@ export default function Chat() {
     }
   };
 
-  // Preserve scroll position after older messages are prepended
-  useEffect(() => {
-    if (prevScrollHeightRef.current > 0 && scroller.current) {
-      const delta = scroller.current.scrollHeight - prevScrollHeightRef.current;
-      if (delta > 0) scroller.current.scrollTop += delta;
-      prevScrollHeightRef.current = 0;
-    }
-  }, [messages.length]);
 
   function formatDate(timestamp: string): string {
     const dayjsTs = dayjs(timestamp).locale(currentLanguage);
@@ -270,13 +262,19 @@ export default function Chat() {
     scrollToBottom(false);
   }, [activeConvId]);
 
-  // Keep the scroll at the bottom when new messages are added
-  // prevent the scroll from jumping when the user is reading old messages
+  // When messages are added: if we loaded older ones, restore scroll position
+  // instead of jumping to bottom; otherwise keep pinned to bottom for new messages.
   useEffect(() => {
     const scrollRef = scroller.current;
-    if (!scrollRef) {
+    if (!scrollRef) return;
+
+    if (prevScrollHeightRef.current > 0) {
+      const delta = scrollRef.scrollHeight - prevScrollHeightRef.current;
+      if (delta > 0) scrollRef.scrollTop += delta;
+      prevScrollHeightRef.current = 0;
       return;
     }
+
     scrollToBottom();
   }, [messages.length]);
 
