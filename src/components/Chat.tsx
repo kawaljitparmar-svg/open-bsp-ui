@@ -325,7 +325,7 @@ export default function Chat() {
     activeConvId && (
       <div
         ref={scroller}
-        className="grow pb-[8px] overflow-y-auto [scrollbar-gutter:stable]"
+        className="grow pb-[8px] overflow-y-auto overscroll-contain [scrollbar-gutter:stable]"
       >
         {hasMore && (
           <div className="flex justify-center pt-[10px] pb-[4px]">
