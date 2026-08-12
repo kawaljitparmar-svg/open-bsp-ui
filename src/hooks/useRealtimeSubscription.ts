@@ -35,7 +35,6 @@ export const useRealtimeSubscription = () => {
         (payload) => {
           // TODO: https://github.com/supabase/supabase/issues/32817
           if (payload.table !== "conversations") return;
-          console.log("[Realtime] conversations:", payload.eventType);
 
           const conversation = payload.new as ConversationRow;
 
@@ -53,7 +52,6 @@ export const useRealtimeSubscription = () => {
         (payload) => {
           // TODO: https://github.com/supabase/supabase/issues/32817
           if (payload.table !== "messages") return;
-          console.log("[Realtime] messages:", payload.eventType, (payload.new as MessageRow)?.id);
 
           const message = payload.new as MessageRow;
 
@@ -68,8 +66,7 @@ export const useRealtimeSubscription = () => {
           table: "contacts",
           filter,
         },
-        (payload) => {
-          console.log("[Realtime] contacts:", payload.eventType);
+        () => {
           // A contact was created, renamed, or deleted. Invalidate all contact
           // and contacts_addresses queries so the conversation list display names
           // and the contacts page both reflect the change immediately.
@@ -83,7 +80,6 @@ export const useRealtimeSubscription = () => {
       );
 
     channel.subscribe((status, err) => {
-      console.log("[Realtime] status:", status);
       if (err) console.error("[Realtime] error:", err);
     });
 
