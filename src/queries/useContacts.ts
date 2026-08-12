@@ -154,9 +154,10 @@ export function useCreateContact() {
       return contact;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.contacts.all(orgId),
-      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.contacts.all(orgId) });
+      // byAddress queries cache under "contacts_addresses" — a different prefix
+      // from "contacts", so they are not covered by the invalidation above.
+      queryClient.invalidateQueries({ queryKey: [orgId, "contacts_addresses"] });
     },
   });
 }
@@ -269,9 +270,8 @@ export function useUpdateContact() {
       return contact;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.contacts.all(orgId),
-      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.contacts.all(orgId) });
+      queryClient.invalidateQueries({ queryKey: [orgId, "contacts_addresses"] });
     },
   });
 }
@@ -287,9 +287,8 @@ export function useDeleteContact() {
       await supabase.from("contacts").delete().eq("id", id).throwOnError();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.contacts.all(orgId),
-      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.contacts.all(orgId) });
+      queryClient.invalidateQueries({ queryKey: [orgId, "contacts_addresses"] });
     },
   });
 }
