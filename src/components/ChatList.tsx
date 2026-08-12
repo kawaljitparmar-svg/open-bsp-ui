@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import useBoundStore from "@/stores/useBoundStore";
 import ChatListItem from "./ChatListItem";
 import { type ConversationRow, type MessageRow } from "@/supabase/client";
@@ -5,6 +6,8 @@ import { timestampDescending } from "@/stores/chatSlice";
 import { filters, Filters } from "@/stores/uiSlice";
 import Fuse from "fuse.js";
 import { useTranslation } from "@/hooks/useTranslation";
+import Spinner from "./Spinner";
+import { useRefresh } from "@/hooks/useRefresh";
 
 export type ConvMetadata = {
   convId: string;
@@ -27,6 +30,9 @@ function pinnedAscending(a: ConversationRow, b: ConversationRow) {
   return aPin && !bPin ? -1 : 1;
 }
 
+const PULL_THRESHOLD = 65;
+const MAX_PULL = 90;
+
 const ChatList = () => {
   const { translate: t } = useTranslation();
   const activeOrgId = useBoundStore((state) => state.ui.activeOrgId);
@@ -37,15 +43,51 @@ const ChatList = () => {
   const searchPattern = useBoundStore((state) => state.ui.searchPattern);
   const setSearchPattern = useBoundStore((state) => state.ui.setSearchPattern);
 
+  const refresh = useRefresh();
+  const [pullY, setPullY] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const touchStartY = useRef(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    if ((scrollRef.current?.scrollTop ?? 1) === 0) {
+      touchStartY.current = e.touches[0].clientY;
+    }
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartY.current || isRefreshing) return;
+    const delta = e.touches[0].clientY - touchStartY.current;
+    if (delta > 0) {
+      setPullY(Math.min(delta * 0.5, MAX_PULL));
+    } else if (delta < -5) {
+      // user started scrolling up — cancel pull gesture
+      touchStartY.current = 0;
+      setPullY(0);
+    }
+  };
+
+  const onTouchEnd = async () => {
+    if (!touchStartY.current) return;
+    const triggered = pullY >= PULL_THRESHOLD;
+    touchStartY.current = 0;
+    setPullY(0);
+
+    if (triggered) {
+      setIsRefreshing(true);
+      await refresh();
+      setIsRefreshing(false);
+    }
+  };
+
+  const indicatorHeight = isRefreshing ? 56 : pullY;
+  const showSpinner = isRefreshing || pullY >= PULL_THRESHOLD;
+
   function getMostRecentMsg(convId: string): MessageRow | undefined {
     return messages.get(convId)?.values().next().value;
   }
 
   let items: ConvMetadata[] = [...conversations]
-    /*.filter(
-      ([, conv]) =>
-        role === "admin" || conv.service !== "local",
-    )*/
     .map(([convId, conv]) => ({
       convId,
       conv,
@@ -75,9 +117,26 @@ const ChatList = () => {
   const itemIds = items.map((a) => a.convId);
 
   return (
-    <div className="overflow-y-auto overscroll-contain [scrollbar-gutter:stable] w-full h-full pt-[10px] px-[10px]">
+    <div
+      ref={scrollRef}
+      className="overflow-y-auto overscroll-contain [scrollbar-gutter:stable] w-full h-full"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
+      {/* Pull-to-refresh indicator */}
+      <div
+        className="flex items-center justify-center overflow-hidden"
+        style={{
+          height: indicatorHeight,
+          transition: pullY === 0 ? "height 0.2s ease" : "none",
+        }}
+      >
+        {showSpinner && <Spinner size={20} />}
+      </div>
+
       {itemIds.length ? (
-        <div className="flex flex-col gap-[4px]">
+        <div className="flex flex-col gap-[4px] pt-[10px] px-[10px]">
           {itemIds.map((key) => (
             <ChatListItem key={key} itemId={key} />
           ))}

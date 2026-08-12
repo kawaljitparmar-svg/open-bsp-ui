@@ -96,6 +96,10 @@
   --color-outgoing-chat-bubble: var(--chat-out);
 }
 
+html {
+  overscroll-behavior-y: none;
+}
+
 html,
 body {
   padding: 0;
