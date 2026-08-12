@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import dayjs from "dayjs";
 import "dayjs/locale/es";
 import "dayjs/locale/pt";
@@ -6,7 +6,8 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 dayjs.extend(localizedFormat);
 import useBoundStore from "@/stores/useBoundStore";
 import Message from "./Message/Message";
-import { type MessageRow } from "@/supabase/client";
+import { supabase, type MessageRow } from "@/supabase/client";
+import Spinner from "./Spinner";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useCurrentOrganization } from "@/queries/useOrganizations";
 import { useCurrentAgent } from "@/queries/useAgents";
@@ -62,6 +63,60 @@ export default function Chat() {
   const scroller = useRef<HTMLDivElement>(null);
 
   const { translate: t, currentLanguage } = useTranslation();
+
+  const pushMessages = useBoundStore((state) => state.chat.pushMessages);
+  const hasMoreMessages = useBoundStore((state) => state.chat.hasMoreMessages);
+  const setHasMore = useBoundStore((state) => state.chat.setHasMore);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const prevScrollHeightRef = useRef(0);
+
+  // messages[] is newest-first from the store; oldest is at the end
+  const oldestTimestamp = messages.at(-1)?.timestamp;
+  const hasMore =
+    !!activeConvId &&
+    !!oldestTimestamp &&
+    hasMoreMessages.get(activeConvId) !== false;
+
+  const OLDER_BATCH = 20;
+
+  const loadOlderMessages = async () => {
+    if (!activeConvId || !oldestTimestamp || isLoadingMore || !hasMore) return;
+
+    setIsLoadingMore(true);
+    prevScrollHeightRef.current = scroller.current?.scrollHeight ?? 0;
+
+    try {
+      const { data } = await supabase
+        .from("messages")
+        .select()
+        .eq("conversation_id", activeConvId)
+        .lt("timestamp", oldestTimestamp)
+        .order("timestamp", { ascending: false })
+        .limit(OLDER_BATCH)
+        .throwOnError();
+
+      if (!data?.length) {
+        setHasMore(activeConvId, false);
+        prevScrollHeightRef.current = 0;
+      } else {
+        pushMessages(data);
+        if (data.length < OLDER_BATCH) setHasMore(activeConvId, false);
+      }
+    } catch {
+      prevScrollHeightRef.current = 0;
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  // Preserve scroll position after older messages are prepended
+  useEffect(() => {
+    if (prevScrollHeightRef.current > 0 && scroller.current) {
+      const delta = scroller.current.scrollHeight - prevScrollHeightRef.current;
+      if (delta > 0) scroller.current.scrollTop += delta;
+      prevScrollHeightRef.current = 0;
+    }
+  }, [messages.length]);
 
   function formatDate(timestamp: string): string {
     const dayjsTs = dayjs(timestamp).locale(currentLanguage);
@@ -274,6 +329,20 @@ export default function Chat() {
         ref={scroller}
         className="grow pb-[8px] overflow-y-auto [scrollbar-gutter:stable]"
       >
+        {hasMore && (
+          <div className="flex justify-center pt-[10px] pb-[4px]">
+            {isLoadingMore ? (
+              <Spinner size={16} />
+            ) : (
+              <button
+                onClick={loadOlderMessages}
+                className="text-xs px-3 py-1.5 bg-incoming-chat-bubble rounded-full shadow text-foreground hover:opacity-75 transition-opacity"
+              >
+                {t("Cargar mensajes anteriores")}
+              </button>
+            )}
+          </div>
+        )}
         <div className="min-h-[12px]" />
         <div className="flex flex-col">
           {envelopesAndSeparators.map((envOrSep, index) =>

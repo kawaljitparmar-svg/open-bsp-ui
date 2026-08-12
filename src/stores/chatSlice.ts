@@ -43,6 +43,7 @@ export type ChatState = {
   textDrafts: Map<string, string>;
   fileDrafts: Map<string, FileDraft[]>;
   mediaLoads: Map<string, MediaLoad>;
+  hasMoreMessages: Map<string, boolean>;
 };
 
 export type ChatActions = {
@@ -56,6 +57,7 @@ export type ChatActions = {
     draftIndex: number,
     caption: string,
   ) => void;
+  setHasMore: (convId: string, hasMore: boolean) => void;
 };
 
 export type ChatSlice = ChatState & ChatActions;
@@ -75,6 +77,7 @@ export const createChatSlice: StateCreator<Partial<AppState>> = (
   textDrafts: new Map(),
   fileDrafts: new Map(),
   mediaLoads: new Map(),
+  hasMoreMessages: new Map(),
   pushConversations: (convs: ConversationRow[]) =>
     set((state) => {
       const conversations = new Map(state.chat.conversations);
@@ -221,4 +224,10 @@ export const createChatSlice: StateCreator<Partial<AppState>> = (
       };
     });
   },
+  setHasMore: (convId: string, hasMore: boolean) =>
+    set((state) => {
+      const hasMoreMessages = new Map(state.chat.hasMoreMessages);
+      hasMoreMessages.set(convId, hasMore);
+      return { chat: { ...state.chat, hasMoreMessages } };
+    }),
 });
