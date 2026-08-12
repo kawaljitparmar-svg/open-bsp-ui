@@ -480,6 +480,37 @@ export default function Message(props: UIMessage & { message: MessageRow }) {
     );
     text = true;
   } else if (
+    props.message.content.type === "data" &&
+    (props.message.content.kind === "button" ||
+      props.message.content.kind === "interactive")
+  ) {
+    const data = props.message.content.data as Record<string, unknown>;
+    let buttonText: string | undefined;
+
+    if (props.message.content.kind === "button") {
+      buttonText = data.text as string;
+    } else {
+      const br = (data as { button_reply?: { title: string } }).button_reply;
+      const lr = (data as { list_reply?: { title: string } }).list_reply;
+      buttonText = br?.title || lr?.title;
+    }
+
+    content = (
+      <TextMessage
+        header={headerText}
+        body={`↩ ${buttonText || ""}`}
+        type="markdown"
+        direction={props.message.direction}
+        timestamp={props.message.timestamp}
+        status={
+          props.message.direction === "outgoing"
+            ? props.message.status
+            : undefined
+        }
+      />
+    );
+    text = true;
+  } else if (
     (props.message.content.type === "data" &&
       props.message.content.kind === "media_placeholder") ||
     (props.message.content.type === "file" && !props.message.content.file?.uri)
