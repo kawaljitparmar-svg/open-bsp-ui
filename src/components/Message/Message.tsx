@@ -542,9 +542,17 @@ export default function Message(props: UIMessage & { message: MessageRow }) {
     text = true;
   } else if (
     props.message.content.type === "data" &&
-    (props.message.content.kind === "unknown" ||
-      props.message.content.kind === "unsupported")
+    props.message.content.kind === "unknown"
   ) {
+    // Connector artifact (e.g. whatsapp-web album metadata) — no user content,
+    // render nothing so no bubble appears.
+    return null;
+  } else if (
+    props.message.content.type === "data" &&
+    props.message.content.kind === "unsupported"
+  ) {
+    // Cloud API reported an explicitly unsupported type (poll, certain buttons).
+    // A real user sent something — show a placeholder so the chat isn't silent.
     content = (
       <TextMessage
         header={headerText}
