@@ -7,8 +7,6 @@ import dayjs from "dayjs";
 import { type MessageRow, type OutgoingStatus } from "@/supabase/client";
 import { Markdown } from "./Message";
 import { mediaCategory } from "./media";
-import { useTranslation } from "@/hooks/useTranslation";
-
 const PORTRAIT_WIDTH = 240;
 const LANDSCAPE_WIDTH = 320;
 const MAX_PORTRAIT_HEIGHT = (PORTRAIT_WIDTH * 4) / 3;
@@ -36,8 +34,6 @@ export default function VideoMessage(message: MessageRow) {
   const [src, setSrc] = useState<string>();
   const [started, setStarted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-
-  const { translate: t } = useTranslation();
 
   useEffect(() => {
     // Start the upload right away.

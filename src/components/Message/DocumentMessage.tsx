@@ -4,8 +4,6 @@ import { useMedia } from "@/hooks/useMedia";
 import { type MessageRow, type OutgoingStatus } from "@/supabase/client";
 import dayjs from "dayjs";
 import { Markdown } from "./Message";
-import { useTranslation } from "@/hooks/useTranslation";
-
 export function extension(filename: string | undefined) {
   return filename?.split(".").slice(-1)[0]?.toLowerCase();
 }
@@ -80,8 +78,6 @@ export default function DocumentMessage(message: MessageRow) {
   const media = content.file;
 
   const { load, startLoad, cancelLoad, handleLoad } = useMedia(message);
-
-  const { translate: t } = useTranslation();
 
   useEffect(() => {
     // Start the upload right away.
