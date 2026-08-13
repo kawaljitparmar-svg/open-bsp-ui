@@ -110,6 +110,9 @@ export default function ChatFooter() {
   const agentId = agent?.id;
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  // Records the timestamp (ms) of the most recent send per conversation.
+  // Used to suppress draft-reload after sending, without adding a new Zustand subscription.
+  const lastSentAtRef = useRef<Map<string, number>>(new Map());
 
   const editableDiv = useRef<HTMLDivElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -117,10 +120,6 @@ export default function ChatFooter() {
   const { translate: t, currentLanguage } = useTranslation();
 
   const tick = useContext(TickContext); // one-minute ticks
-
-  const mostRecentMsg: MessageRow | undefined = useBoundStore((store) =>
-    store.chat.messages.get(store.ui.activeConvId || "")?.values().next().value,
-  );
 
   const mostRecentIncoming: MessageRow | undefined = useBoundStore((store) => {
     const msgs = store.chat.messages.get(store.ui.activeConvId || "")?.values();
@@ -218,16 +217,16 @@ export default function ChatFooter() {
     }
 
     // Note: conv.extra.draft is a DB stored draft; message (textDraft) is just an UI buffer.
-    // Guard on the draft's timestamp: if the most recent message is newer than the draft,
-    // the draft is stale (already sent or superseded) and must not be reloaded into the input.
-    // This is the same logic ChatListItem uses for its preview, and it also closes the race
-    // window where a realtime conversation update (triggered by the message insert) carries
-    // the old draft back to the store before saveDraft has cleared it in the DB.
+    // Guard on the draft's timestamp vs. the last time a message was sent from this conv.
+    // This closes the race where a realtime conversation update (triggered by the message
+    // insert updating conversations.updated_at) carries the old draft back before saveDraft
+    // has cleared it, causing the draft to reload into an already-empty input.
+    const lastSentAt = lastSentAtRef.current.get(activeConvId) || 0;
     const shouldLoadDraft =
       inCSWindow &&
       draft?.text &&
       !message &&
-      +new Date(draft.timestamp || 0) > +new Date(mostRecentMsg?.timestamp || 0);
+      +new Date(draft.timestamp || 0) > lastSentAt;
 
     if (draft?.origin === "bot" || draft?.origin === "human-as-organization") {
       // Draft defaults to send as organization
@@ -262,6 +261,7 @@ export default function ChatFooter() {
     }
 
     clearTimeout(timerRef.current);
+    lastSentAtRef.current.set(activeConvId, Date.now());
 
     // If the conv has the `updated_at` unset, it means it has not been pushed to the DB yet.
     !conv.updated_at && (await pushConversationToDb(conv));
