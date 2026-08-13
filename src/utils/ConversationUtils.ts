@@ -89,17 +89,35 @@ export async function saveDraft(
     origin = sendAsContact ? "human-as-contact" : "human-as-organization";
   }
 
-  const payload = {
-    extra: {
-      draft: text
-        ? {
-            text,
-            timestamp: new Date().toISOString(),
-            origin,
-          }
-        : null,
-    },
-  };
+  const draft = text
+    ? {
+        text,
+        timestamp: new Date().toISOString(),
+        origin,
+      }
+    : null;
+
+  const payload = { extra: { draft } };
+
+  // Optimistic local update so the chat list reflects the change immediately
+  // without waiting for the realtime subscription to echo it back.
+  useBoundStore.setState((state) => {
+    const conversations = new Map(state.chat.conversations);
+    const existing = conversations.get(conv.id);
+    if (existing) {
+      const currentExtra =
+        typeof existing.extra === "object" &&
+        existing.extra !== null &&
+        !Array.isArray(existing.extra)
+          ? (existing.extra as Record<string, unknown>)
+          : {};
+      conversations.set(conv.id, {
+        ...existing,
+        extra: { ...currentExtra, draft } as ConversationRow["extra"],
+      });
+    }
+    return { chat: { ...state.chat, conversations } };
+  });
 
   const { error } = await supabase
     .from("conversations")
