@@ -5,10 +5,6 @@ import { queryKeys } from "@/queries/queryKeys";
 
 export const useRefresh = () => {
   const activeOrgId = useBoundStore((state) => state.ui.activeOrgId);
-  const pushConversations = useBoundStore(
-    (state) => state.chat.pushConversations,
-  );
-  const pushMessages = useBoundStore((state) => state.chat.pushMessages);
   const queryClient = useQueryClient();
 
   return async () => {
@@ -33,6 +29,8 @@ export const useRefresh = () => {
         .limit(999),
     ]);
 
+    // Read actions from the store at call time — no subscriptions needed.
+    const { pushConversations, pushMessages } = useBoundStore.getState().chat;
     if (convs) pushConversations(convs);
     if (msgs) pushMessages(msgs);
     queryClient.invalidateQueries({
