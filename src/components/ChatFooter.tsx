@@ -118,6 +118,10 @@ export default function ChatFooter() {
 
   const tick = useContext(TickContext); // one-minute ticks
 
+  const mostRecentMsg: MessageRow | undefined = useBoundStore((store) =>
+    store.chat.messages.get(store.ui.activeConvId || "")?.values().next().value,
+  );
+
   const mostRecentIncoming: MessageRow | undefined = useBoundStore((store) => {
     const msgs = store.chat.messages.get(store.ui.activeConvId || "")?.values();
 
@@ -213,8 +217,17 @@ export default function ChatFooter() {
       return;
     }
 
-    // Note: conv.extra.draft is a DB stored draft; message (textDraft) is just an UI buffer
-    const shouldLoadDraft = inCSWindow && draft?.text && !message; // do not overwrite a current message
+    // Note: conv.extra.draft is a DB stored draft; message (textDraft) is just an UI buffer.
+    // Guard on the draft's timestamp: if the most recent message is newer than the draft,
+    // the draft is stale (already sent or superseded) and must not be reloaded into the input.
+    // This is the same logic ChatListItem uses for its preview, and it also closes the race
+    // window where a realtime conversation update (triggered by the message insert) carries
+    // the old draft back to the store before saveDraft has cleared it in the DB.
+    const shouldLoadDraft =
+      inCSWindow &&
+      draft?.text &&
+      !message &&
+      +new Date(draft.timestamp || 0) > +new Date(mostRecentMsg?.timestamp || 0);
 
     if (draft?.origin === "bot" || draft?.origin === "human-as-organization") {
       // Draft defaults to send as organization
