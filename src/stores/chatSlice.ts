@@ -58,6 +58,7 @@ export type ChatActions = {
     caption: string,
   ) => void;
   setHasMore: (convId: string, hasMore: boolean) => void;
+  deleteMessage: (convId: string, messageId: string) => void;
 };
 
 export type ChatSlice = ChatState & ChatActions;
@@ -229,5 +230,13 @@ export const createChatSlice: StateCreator<Partial<AppState>> = (
       const hasMoreMessages = new Map(state.chat.hasMoreMessages);
       hasMoreMessages.set(convId, hasMore);
       return { chat: { ...state.chat, hasMoreMessages } };
+    }),
+  deleteMessage: (convId: string, messageId: string) =>
+    set((state) => {
+      const messages = new Map(state.chat.messages);
+      const convMessages = new Map(messages.get(convId));
+      convMessages.delete(messageId);
+      messages.set(convId, convMessages);
+      return { chat: { ...state.chat, messages } };
     }),
 });

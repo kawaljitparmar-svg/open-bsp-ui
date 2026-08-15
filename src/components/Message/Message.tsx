@@ -2,6 +2,7 @@ import {
   type MessageRow,
   type OutgoingStatus,
   type ToolInfo,
+  supabase,
 } from "@/supabase/client";
 import AudioMessage from "./AudioMessage";
 import DocumentMessage from "./DocumentMessage";
@@ -20,6 +21,8 @@ import { useContactByAddress } from "@/queries/useContacts";
 import { formatPhoneNumber } from "@/utils/FormatUtils";
 import { AVATAR_BG_COLORS, AVATAR_TEXT_COLORS } from "@/utils/colors";
 import type { Json } from "@/supabase/db_types";
+import { getHighestStatus } from "@/utils/MessageStatusUtils";
+import useBoundStore from "@/stores/useBoundStore";
 
 const md = new Remarkable({
   breaks: true,
@@ -402,6 +405,16 @@ type UIMessage = {
 
 export default function Message(props: UIMessage & { message: MessageRow }) {
   const { translate: t } = useTranslation();
+  const deleteMessage = useBoundStore((state) => state.chat.deleteMessage);
+
+  const isFailed =
+    props.message.direction === "outgoing" &&
+    getHighestStatus(props.message.status) === "failed";
+
+  async function handleDeleteFailedMessage() {
+    await supabase.from("messages").delete().eq("id", props.message.id);
+    deleteMessage(props.message.conversation_id, props.message.id);
+  }
 
   // Group conversations (whatsapp-web): incoming rows carry the actual sender in
   // contact_address. Resolve a friendly label to attribute each message.
@@ -623,16 +636,29 @@ export default function Message(props: UIMessage & { message: MessageRow }) {
       )}
       {(props.message.direction === "outgoing" ||
         props.message.direction === "internal") && (
-        <OutMessage
-          {...{
-            ...props,
-            text,
-            internal: props.message.direction === "internal",
-            fixedWidth,
-          }}
-        >
-          {content}
-        </OutMessage>
+        <div className={isFailed ? "group relative" : undefined}>
+          <OutMessage
+            {...{
+              ...props,
+              text,
+              internal: props.message.direction === "internal",
+              fixedWidth,
+            }}
+          >
+            {content}
+          </OutMessage>
+          {isFailed && (
+            <button
+              onClick={handleDeleteFailedMessage}
+              className="absolute left-[24px] lg:left-[63px] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-destructive text-white rounded-full w-[20px] h-[20px] flex items-center justify-center"
+              title={t("Eliminar mensaje fallido")}
+            >
+              <svg className="w-[12px] h-[12px]">
+                <use href="/icons.svg#x" />
+              </svg>
+            </button>
+          )}
+        </div>
       )}
     </>
   );

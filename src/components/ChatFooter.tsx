@@ -375,7 +375,6 @@ export default function ChatFooter() {
       template.components = components;
     }
 
-    // Build rendered text for display
     const renderedParts: string[] = [];
     if (headContent) renderedParts.push(`*${headContent}*`);
     renderedParts.push(bodyContent);
