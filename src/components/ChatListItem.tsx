@@ -401,7 +401,27 @@ export default function ChatListItem({ itemId }: { itemId: string }) {
                   {preview?.content.type === "text" && preview.content.text}
                   {preview?.content.type === "data" &&
                     preview.content.kind !== "media_placeholder" &&
-                    JSON.stringify(preview.content.data)}
+                    (() => {
+                      const kind = preview.content.kind;
+                      const data = preview.content.data as Record<
+                        string,
+                        unknown
+                      >;
+                      if (kind === "template")
+                        return preview.content.text || "";
+                      if (kind === "button")
+                        return `↩ ${(data.text as string) || ""}`;
+                      if (kind === "interactive") {
+                        const br = (
+                          data as {
+                            button_reply?: { title: string };
+                            list_reply?: { title: string };
+                          }
+                        );
+                        return `↩ ${br.button_reply?.title || br.list_reply?.title || ""}`;
+                      }
+                      return JSON.stringify(data);
+                    })()}
                   {(preview?.content.type === "file" ||
                     (preview?.content.type === "data" &&
                       preview.content.kind === "media_placeholder")) &&
