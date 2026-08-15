@@ -343,17 +343,22 @@ export default function ChatFooter() {
     if (templateButtons?.buttons) {
       let idx = 0;
       for (const button of templateButtons.buttons) {
-        components.push({
-          type: "button",
-          sub_type: "quick_reply",
-          index: idx.toString(),
-          parameters: [
-            {
-              type: "payload",
-              payload: button.text.toLowerCase().replaceAll(" ", "_"),
-            },
-          ],
-        });
+        // Only QUICK_REPLY buttons need a component parameter.
+        // URL and PHONE_NUMBER buttons are static in the template definition and
+        // must NOT be included here — the Meta API rejects them as quick_reply.
+        if (button.type === "QUICK_REPLY") {
+          components.push({
+            type: "button",
+            sub_type: "quick_reply",
+            index: idx.toString(),
+            parameters: [
+              {
+                type: "payload",
+                payload: button.text.toLowerCase().replaceAll(" ", "_"),
+              },
+            ],
+          });
+        }
         idx++;
       }
     }

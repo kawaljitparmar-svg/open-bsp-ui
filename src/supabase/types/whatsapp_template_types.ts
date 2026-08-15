@@ -62,12 +62,25 @@ type FooterComponent = {
 
 type ButtonsComponent = {
   type: "BUTTONS";
-  buttons: QuickReply[]; // TODO: call to action buttons - cabra 2024/09/12
+  buttons: (QuickReply | UrlButton | PhoneNumberButton)[];
 };
 
 type QuickReply = {
   type: "QUICK_REPLY";
   text: string;
+};
+
+type UrlButton = {
+  type: "URL";
+  text: string;
+  url: string;
+  example?: string[]; // dynamic suffix examples, e.g. ["promo_code"]
+};
+
+type PhoneNumberButton = {
+  type: "PHONE_NUMBER";
+  text: string;
+  phone_number: string;
 };
 
 // Template message, used to send a template message
