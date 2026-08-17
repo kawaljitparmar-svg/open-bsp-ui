@@ -397,8 +397,9 @@ export default function ChatFooter() {
     pushMessageToStore(record);
     await pushMessageToDb(record);
 
-    // Auto-save contact name from the {{name}} template variable if the contact
-    // has none yet. Only applies when the body contains a parameter named "name".
+    // Auto-save contact name from the {{name}} template variable.
+    // Creates a contact + address link if none exists yet (new outbound conversations).
+    // Also updates the conversation name so the chat list shows the name immediately.
     const nameIdx = bodyVarNames.indexOf("name");
     const contactName = nameIdx >= 0 ? (bodyVarValues[nameIdx] || "").trim() : "";
     if (contactName && conv.contact_address) {
@@ -410,12 +411,42 @@ export default function ChatFooter() {
         .eq("address", conv.contact_address)
         .maybeSingle();
 
-      if (addr?.contact_id) {
+      let contactId = addr?.contact_id ?? null;
+
+      if (contactId) {
+        // Contact already exists — update name only if currently blank
         await supabase
           .from("contacts")
           .update({ name: contactName })
-          .eq("id", addr.contact_id)
+          .eq("id", contactId)
           .or("name.is.null,name.eq.");
+      } else {
+        // No contact yet (new outbound conversation) — create one and link it
+        const { data: newContact } = await supabase
+          .from("contacts")
+          .insert({ organization_id: conv.organization_id, name: contactName })
+          .select("id")
+          .single();
+
+        if (newContact) {
+          contactId = newContact.id;
+          await supabase.from("contacts_addresses").insert({
+            contact_id: newContact.id,
+            organization_id: conv.organization_id,
+            service: conv.service,
+            address: conv.contact_address,
+          });
+        }
+      }
+
+      // Update the conversation name so the chat list and header show the real
+      // name instead of the raw phone number (conversation.name takes priority
+      // over contact.name in the display fallback chain).
+      if (contactId && conv.name !== contactName) {
+        await supabase
+          .from("conversations")
+          .update({ name: contactName })
+          .eq("id", conv.id);
       }
     }
 
