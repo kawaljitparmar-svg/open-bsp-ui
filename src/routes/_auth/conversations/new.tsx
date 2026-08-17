@@ -85,7 +85,7 @@ function NewChat() {
 
         setValidationStatus(data.valid ? "valid" : "unverified");
       } catch {
-        setValidationStatus("invalid");
+        setValidationStatus("unverified");
       }
     }, 600);
 
