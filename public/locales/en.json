@@ -140,6 +140,7 @@
   "Estadísticas": "Statistics",
   "Este enlace es inválido o ha expirado.": "This link is invalid or has expired.",
   "Este número no está en WhatsApp": "This number is not on WhatsApp",
+  "No se pudo verificar": "Could not verify",
   "Esto generará una nueva clave API que podrás usar para autenticarte.": "This will generate a new API key that you can use to authenticate.",
   "Evita errores de cálculo en LLMs": "Prevents calculation errors in LLMs",
   "Expira": "Expires",

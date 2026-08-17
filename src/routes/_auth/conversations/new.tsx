@@ -6,7 +6,7 @@ import {
   MessageSquarePlus,
   MessageCircle,
   CheckCircle,
-  XCircle,
+  AlertTriangle,
 } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { startConversation } from "@/utils/ConversationUtils";
@@ -23,7 +23,7 @@ export const Route = createFileRoute("/_auth/conversations/new")({
   component: NewChat,
 });
 
-type ValidationStatus = "idle" | "checking" | "valid" | "invalid";
+type ValidationStatus = "idle" | "checking" | "valid" | "unverified";
 
 function NewChat() {
   const { translate: t } = useTranslation();
@@ -79,11 +79,11 @@ function NewChat() {
         );
 
         if (error || !data) {
-          setValidationStatus("invalid");
+          setValidationStatus("unverified");
           return;
         }
 
-        setValidationStatus(data.valid ? "valid" : "invalid");
+        setValidationStatus(data.valid ? "valid" : "unverified");
       } catch {
         setValidationStatus("invalid");
       }
@@ -113,8 +113,8 @@ function NewChat() {
               {validationStatus === "valid" && (
                 <CheckCircle className="w-[18px] h-[18px] text-green-500" />
               )}
-              {validationStatus === "invalid" && (
-                <XCircle className="w-[18px] h-[18px] text-destructive" />
+              {validationStatus === "unverified" && (
+                <AlertTriangle className="w-[18px] h-[18px] text-yellow-500" />
               )}
               <X
                 className="cursor-pointer text-muted-foreground w-[16px] h-[16px] stroke-[3px]"
@@ -154,36 +154,35 @@ function NewChat() {
           />
         )}
 
-        {!!whatsappAddress && validationStatus === "valid" && (
-          <SectionItem
-            title={formatPhoneNumber(sanitized)}
-            description={t("En WhatsApp")}
-            aside={
-              <div className="p-[8px] bg-primary/10 rounded-full">
-                <MessageCircle className="w-[24px] h-[24px] text-primary" />
-              </div>
-            }
-            onClick={() => {
-              if (!activeOrgId) return;
+        {!!whatsappAddress &&
+          (validationStatus === "valid" || validationStatus === "unverified") && (
+            <SectionItem
+              title={formatPhoneNumber(sanitized)}
+              description={
+                validationStatus === "valid"
+                  ? t("En WhatsApp")
+                  : t("No se pudo verificar")
+              }
+              aside={
+                <div className="p-[8px] bg-primary/10 rounded-full">
+                  <MessageCircle className="w-[24px] h-[24px] text-primary" />
+                </div>
+              }
+              onClick={() => {
+                if (!activeOrgId) return;
 
-              const convId = startConversation({
-                organization_id: activeOrgId,
-                organization_address: whatsappAddress,
-                contact_address: sanitized,
-                service: "whatsapp",
-                name: formatPhoneNumber(sanitized),
-              });
+                const convId = startConversation({
+                  organization_id: activeOrgId,
+                  organization_address: whatsappAddress,
+                  contact_address: sanitized,
+                  service: "whatsapp",
+                  name: formatPhoneNumber(sanitized),
+                });
 
-              navigate({ to: "/conversations", hash: convId });
-            }}
-          />
-        )}
-
-        {!!whatsappAddress && validationStatus === "invalid" && (
-          <div className="px-[20px] py-[12px] text-[14px] text-muted-foreground">
-            {t("Este número no está en WhatsApp")}
-          </div>
-        )}
+                navigate({ to: "/conversations", hash: convId });
+              }}
+            />
+          )}
       </SectionBody>
     </div>
   );
