@@ -1,18 +1,29 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import useBoundStore from "@/stores/useBoundStore";
-import { Search, X, MessageSquarePlus, MessageCircle } from "lucide-react";
+import {
+  Search,
+  X,
+  MessageSquarePlus,
+  MessageCircle,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { startConversation } from "@/utils/ConversationUtils";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { formatPhoneNumber } from "@/utils/FormatUtils";
 import SectionHeader from "@/components/SectionHeader";
 import { useOrganizationsAddresses } from "@/queries/useOrganizationsAddresses";
 import SectionItem from "@/components/SectionItem";
 import SectionBody from "@/components/SectionBody";
+import Spinner from "@/components/Spinner";
+import { supabase } from "@/supabase/client";
 
 export const Route = createFileRoute("/_auth/conversations/new")({
   component: NewChat,
 });
+
+type ValidationStatus = "idle" | "checking" | "valid" | "invalid";
 
 function NewChat() {
   const { translate: t } = useTranslation();
@@ -27,13 +38,59 @@ function NewChat() {
   const whatsappAddresses = addresses?.filter(
     (address) => address.service === "whatsapp",
   );
+  const whatsappAddress = whatsappAddresses?.[0]?.address;
 
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [validationStatus, setValidationStatus] =
+    useState<ValidationStatus>("idle");
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
 
   function sanitizePhoneNumber(phone: string): string {
-    // Strip everything except digits — caller must include full country code (e.g. 919876543210 for India)
     return phone.replace(/\D/g, "");
   }
+
+  const sanitized = sanitizePhoneNumber(phoneNumber);
+  const hasEnoughDigits = sanitized.length >= 10;
+
+  useEffect(() => {
+    clearTimeout(debounceRef.current);
+
+    if (!hasEnoughDigits || !whatsappAddress || !activeOrgId) {
+      setValidationStatus("idle");
+      return;
+    }
+
+    setValidationStatus("checking");
+
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke(
+          "whatsapp-management/contacts/check",
+          {
+            method: "POST",
+            body: {
+              organization_id: activeOrgId,
+              organization_address: whatsappAddress,
+              phone_number: sanitized,
+            },
+          },
+        );
+
+        if (error || !data) {
+          setValidationStatus("invalid");
+          return;
+        }
+
+        setValidationStatus(data.valid ? "valid" : "invalid");
+      } catch {
+        setValidationStatus("invalid");
+      }
+    }, 600);
+
+    return () => clearTimeout(debounceRef.current);
+  }, [sanitized, activeOrgId, whatsappAddress]);
 
   return (
     <div className="flex flex-col h-full">
@@ -49,10 +106,24 @@ function NewChat() {
             onChange={(e) => setPhoneNumber(e.target.value)}
           />
           {phoneNumber && (
-            <X
-              className="cursor-pointer text-muted-foreground w-[16px] h-[16px] stroke-[3px]"
-              onClick={() => setPhoneNumber("")}
-            />
+            <div className="flex items-center gap-[6px] shrink-0">
+              {validationStatus === "checking" && (
+                <Spinner size={16} className="text-muted-foreground" />
+              )}
+              {validationStatus === "valid" && (
+                <CheckCircle className="w-[18px] h-[18px] text-green-500" />
+              )}
+              {validationStatus === "invalid" && (
+                <XCircle className="w-[18px] h-[18px] text-destructive" />
+              )}
+              <X
+                className="cursor-pointer text-muted-foreground w-[16px] h-[16px] stroke-[3px]"
+                onClick={() => {
+                  setPhoneNumber("");
+                  setValidationStatus("idle");
+                }}
+              />
+            </div>
           )}
         </div>
       </div>
@@ -78,37 +149,41 @@ function NewChat() {
                 service: "local",
               });
 
-              //setActiveConv(convId!);
               navigate({ to: "/conversations", hash: convId });
             }}
           />
         )}
 
-        {!!whatsappAddresses?.length &&
-          phoneNumber.replace(/\D/g, "").length >= 10 && (
-            <SectionItem
-              title={formatPhoneNumber(sanitizePhoneNumber(phoneNumber))}
-              aside={
-                <div className="p-[8px] bg-primary/10 rounded-full">
-                  <MessageCircle className="w-[24px] h-[24px] text-primary" />
-                </div>
-              }
-              onClick={() => {
-                if (!activeOrgId) return;
+        {!!whatsappAddress && validationStatus === "valid" && (
+          <SectionItem
+            title={formatPhoneNumber(sanitized)}
+            description={t("En WhatsApp")}
+            aside={
+              <div className="p-[8px] bg-primary/10 rounded-full">
+                <MessageCircle className="w-[24px] h-[24px] text-primary" />
+              </div>
+            }
+            onClick={() => {
+              if (!activeOrgId) return;
 
-                const convId = startConversation({
-                  organization_id: activeOrgId,
-                  organization_address: whatsappAddresses[0].address,
-                  contact_address: sanitizePhoneNumber(phoneNumber),
-                  service: "whatsapp",
-                  name: formatPhoneNumber(sanitizePhoneNumber(phoneNumber)),
-                });
+              const convId = startConversation({
+                organization_id: activeOrgId,
+                organization_address: whatsappAddress,
+                contact_address: sanitized,
+                service: "whatsapp",
+                name: formatPhoneNumber(sanitized),
+              });
 
-                // setActiveConv(convId!);
-                navigate({ to: "/conversations", hash: convId });
-              }}
-            />
-          )}
+              navigate({ to: "/conversations", hash: convId });
+            }}
+          />
+        )}
+
+        {!!whatsappAddress && validationStatus === "invalid" && (
+          <div className="px-[20px] py-[12px] text-[14px] text-muted-foreground">
+            {t("Este número no está en WhatsApp")}
+          </div>
+        )}
       </SectionBody>
     </div>
   );
